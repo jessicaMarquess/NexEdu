@@ -6,6 +6,7 @@ Este guia vai te ajudar a configurar o GitHub Actions em **menos de 2 minutos** 
 
 ✅ **Não precisa de Docker Hub!**  
 ✅ **Não precisa de secrets!**  
+✅ **Não precisa de servidores!**  
 ✅ **Não precisa de configuração externa!**
 
 ## 🚀 **Como Funciona**

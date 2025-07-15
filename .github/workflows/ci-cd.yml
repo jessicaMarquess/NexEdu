@@ -1,4 +1,10 @@
-name: CI/CD Pipeline
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]I/CD Pipeline
 
 on:
   push:
@@ -97,27 +103,25 @@ jobs:
           docker run --rm -d --name nexedu-test -p 3000:3000 nexedu-api:latest
           sleep 10
           curl -f http://localhost:3000 || exit 1
-          docker stop nexedu-test
-
-      - name: Comment build success
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const message = `✅ **Build Successful!**
-
-            **Commit**: ${context.sha.substring(0, 7)}
-            **Branch**: ${context.ref.replace('refs/heads/', '')}
-
-            - ✅ Tests passed
-            - ✅ TypeScript compiled
-            - ✅ Docker image built successfully
-            - ✅ Application starts correctly
-
-            **Ready for deployment!** 🚀`;
-
-            github.rest.repos.createCommitComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-              body: message
-            });
+          docker stop nexedu-test    - name: Comment build success
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const message = `✅ **Build Successful!**
+          
+          **Commit**: ${context.sha.substring(0, 7)}
+          **Branch**: ${context.ref.replace('refs/heads/', '')}
+          
+          - ✅ Tests passed
+          - ✅ TypeScript compiled
+          - ✅ Docker image built successfully
+          - ✅ Application starts correctly
+          
+          **Code is ready!** 🚀`;
+          
+          github.rest.repos.createCommitComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+            body: message
+          });

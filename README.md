@@ -7,8 +7,23 @@ API simples para gerenciamento de posts educacionais.
 - Node.js + TypeScript
 - Express.js
 - Prisma ORM
-- PostgreSQL
-- Docker & Docker Compose
+### Como Usar
+
+```bash
+# Testes automáticos e build no push para main
+git push origin main
+
+# Apenas testes no push para develop  
+git push origin develop
+
+# Criar release (opcional)
+git tag v1.0.0 && git push origin v1.0.0
+```
+
+> 💡 **Focado em qualidade!** O CI/CD valida código, roda testes e prepara builds sem deploy automático.
+
+**📖 Documentação completa**: [GitHub Actions Guide](.github/ACTIONS.md)  
+**⚡ Configuração rápida**: [Setup Guide](.github/SETUP.md)cker & Docker Compose
 
 ## Como usar
 
@@ -116,20 +131,20 @@ DELETE /posts/:id     # Deletar post
 }
 ```
 
-## 🔄 CI/CD com GitHub Actions
+## 🔄 CI com GitHub Actions
 
-Este projeto utiliza GitHub Actions para automação completa de CI/CD:
+Este projeto utiliza GitHub Actions para automação de qualidade de código:
 
 ### Workflows Configurados
 
-- **🧪 CI/CD Pipeline**: Testes automáticos, build e deploy
+- **🧪 CI Pipeline**: Testes automáticos e build validation
 - **🔍 Pull Request Checks**: Análise de qualidade de código em PRs
 - **🚀 Releases**: Criação automática de releases e tags
 - **🔒 Security Checks**: Verificações de segurança semanais
 
 ### Status Badges
 
-![CI/CD](https://github.com/Rafacolacio/NexEdu/workflows/CI/CD%20Pipeline/badge.svg)
+![CI](https://github.com/Rafacolacio/NexEdu/workflows/CI%20Pipeline/badge.svg)
 ![Security](https://github.com/Rafacolacio/NexEdu/workflows/Security%20Checks/badge.svg)
 
 ### Como Usar

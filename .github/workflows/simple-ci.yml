@@ -53,27 +53,12 @@ jobs:
           npm test
 
       - name: Upload build artifacts
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
-          name: dist-files
-          path: dist/
-
-  deploy:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-files
-          path: dist/
-
-      - name: Deploy to server (example)
-        run: |
-          echo "🚀 Deploying to production..."
-          echo "📦 Files ready in dist/ folder"
-          echo "💡 Add your deployment commands here"
-          # Exemplo: rsync, scp, ou deploy para Vercel/Railway/etc
+          name: nexedu-build-${{ github.sha }}
+          path: |
+            dist/
+            package.json
+            prisma/
+          retention-days: 7
