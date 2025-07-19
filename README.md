@@ -23,17 +23,38 @@ git tag v1.0.0 && git push origin v1.0.0
 - Express.js
 - Prisma ORM
 
-### Como Usar
+### Como Funciona
 
 ```bash
-# Testes automáticos e build no push para main
+# Dispara testes + build + push para Docker Hub
 git push origin main
 
-# Apenas testes no push para develop
+# Dispara apenas testes (não faz push)
 git push origin develop
 
-# Criar release (opcional)
-git tag v1.0.0 && git push origin v1.0.0
+# Cria release automático com changelog e assets
+git tag v1.0.0 
+git push origin v1.0.0
+```
+
+### Criando Releases
+
+Para criar uma nova release:
+
+```bash
+# 1. Faça suas mudanças e commits
+git add .
+git commit -m "feat: nova funcionalidade"
+
+# 2. Crie e push a tag
+git tag v1.2.0
+git push origin v1.2.0
+
+# 3. O workflow automaticamente:
+#    - Gera changelog dos commits
+#    - Cria release no GitHub
+#    - Anexa arquivos de deploy
+#    - Documenta como usar a versão
 ```
 
 > 💡 **Focado em qualidade!** O CI/CD valida código, roda testes e prepara builds sem deploy automático.
@@ -147,41 +168,29 @@ DELETE /posts/:id     # Deletar post
 }
 ```
 
-## 🔄 CI com GitHub Actions
+## 🔄 CI/CD com GitHub Actions
 
-Este projeto utiliza GitHub Actions para automação completa com Docker:
+Este projeto utiliza GitHub Actions para automação completa com Docker.
 
 ### Workflows Configurados
 
-- **🐳 Docker Build & Push**: Testes com Docker e publicação automática
-- **🧪 CI Pipeline**: Testes automáticos e build validation
-- **🔍 Pull Request Checks**: Análise de qualidade de código em PRs
-- **🚀 Releases**: Criação automática de releases e tags
-- **🔒 Security Checks**: Verificações de segurança semanais
+**🐳 Docker Build and Push** (`main.yml`):
+- **Triggers**: Push para `main`/`develop`, tags `v*`, pull requests
+- **Test Phase**: Testes automatizados com Docker + PostgreSQL
+- **Build Phase**: Build multi-arquitetura (linux/amd64, linux/arm64)
+- **Push Phase**: Upload automático para Docker Hub
+- **Artifacts**: Gera arquivos de deployment para produção
 
-### Status Badges
+**🚀 Create Release** (`release.yml`):
+- **Triggers**: Tags `v*` (ex: v1.0.0, v2.1.3)
+- **Auto Changelog**: Gera changelog baseado nos commits
+- **Release Assets**: Inclui docker-compose.prod.yml, deploy.sh, .env.example
+- **GitHub Release**: Cria release automático com documentação
 
-![Docker Build](https://github.com/jessicaMarquess/NexEdu/workflows/Docker%20Build%20and%20Push/badge.svg)
-![CI](https://github.com/jessicaMarquess/NexEdu/workflows/CI%20Pipeline/badge.svg)
-![Security](https://github.com/jessicaMarquess/NexEdu/workflows/Security%20Checks/badge.svg)
+### Status dos Pipelines
 
-### Como Usar
-
-```bash
-# Build e testes automáticos no push para main
-git push origin main
-
-# Apenas testes no push para develop
-git push origin develop
-
-# Criar release (opcional)
-git tag v1.0.0 && git push origin v1.0.0
-```
-
-> 💡 **Zero configuração necessária!** O CI/CD funciona imediatamente sem Docker Hub ou secrets.
-
-**📖 Documentação completa**: [GitHub Actions Guide](.github/ACTIONS.md)  
-**⚡ Configuração rápida**: [Setup Guide](.github/SETUP.md)
+![Docker Build and Push](https://github.com/jessicaMarquess/NexEdu/workflows/Docker%20Build%20and%20Push/badge.svg)
+![Create Release](https://github.com/jessicaMarquess/NexEdu/workflows/Create%20Release/badge.svg)
 
 ## Testes
 
