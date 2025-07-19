@@ -1,19 +1,35 @@
-# NexEdu API
+# NexEdu A### Como Usar
 
-API simples para gerenciamento de posts educacionais.
+```bash
+# Build Docker automático no push para main
+git push origin main
+
+# Deploy de desenvolvimento
+git push origin develop
+
+# Release com versioning
+git tag v1.0.0 && git push origin v1.0.0
+```
+
+> 🐳 **Docker-first!** Tudo é testado e empacotado em containers para máxima portabilidade.
+
+**📖 Documentação completa**: [GitHub Actions Guide](.github/ACTIONS.md)  
+**⚡ Configuração rápida**: [Setup Guide](.github/SETUP.md)  
+**🐳 Deploy com Docker**: [Docker Deployment Guide](DOCKER-DEPLOY.md)ara gerenciamento de posts educacionais.
 
 ## Tecnologias
 
 - Node.js + TypeScript
 - Express.js
 - Prisma ORM
+
 ### Como Usar
 
 ```bash
 # Testes automáticos e build no push para main
 git push origin main
 
-# Apenas testes no push para develop  
+# Apenas testes no push para develop
 git push origin develop
 
 # Criar release (opcional)
@@ -133,10 +149,11 @@ DELETE /posts/:id     # Deletar post
 
 ## 🔄 CI com GitHub Actions
 
-Este projeto utiliza GitHub Actions para automação de qualidade de código:
+Este projeto utiliza GitHub Actions para automação completa com Docker:
 
 ### Workflows Configurados
 
+- **🐳 Docker Build & Push**: Testes com Docker e publicação automática
 - **🧪 CI Pipeline**: Testes automáticos e build validation
 - **🔍 Pull Request Checks**: Análise de qualidade de código em PRs
 - **🚀 Releases**: Criação automática de releases e tags
@@ -144,8 +161,9 @@ Este projeto utiliza GitHub Actions para automação de qualidade de código:
 
 ### Status Badges
 
-![CI](https://github.com/Rafacolacio/NexEdu/workflows/CI%20Pipeline/badge.svg)
-![Security](https://github.com/Rafacolacio/NexEdu/workflows/Security%20Checks/badge.svg)
+![Docker Build](https://github.com/jessicaMarquess/NexEdu/workflows/Docker%20Build%20and%20Push/badge.svg)
+![CI](https://github.com/jessicaMarquess/NexEdu/workflows/CI%20Pipeline/badge.svg)
+![Security](https://github.com/jessicaMarquess/NexEdu/workflows/Security%20Checks/badge.svg)
 
 ### Como Usar
 

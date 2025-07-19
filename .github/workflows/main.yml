@@ -1,0 +1,218 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: nexedu-api
+
+jobs:
+  # Testes com Docker
+  test-docker:
+    name: Test with Docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build test image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: nexedu-test:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Create test network
+        run: docker network create nexedu-test-network
+
+      - name: Run PostgreSQL for tests
+        run: |
+          docker run -d \
+            --name postgres-test \
+            --network nexedu-test-network \
+            -e POSTGRES_USER=nexedu_test \
+            -e POSTGRES_PASSWORD=test123 \
+            -e POSTGRES_DB=nexedu_test \
+            -p 5432:5432 \
+            postgres:15-alpine
+
+      - name: Wait for PostgreSQL
+        run: |
+          timeout 30s bash -c 'until docker exec postgres-test pg_isready -U nexedu_test; do sleep 1; done'
+
+      - name: Run application tests
+        run: |
+          docker run --rm \
+            --network nexedu-test-network \
+            -e DATABASE_URL="postgresql://nexedu_test:test123@postgres-test:5432/nexedu_test" \
+            -e NODE_ENV=test \
+            nexedu-test:latest \
+            sh -c "npx prisma migrate deploy && npm test"
+
+      - name: Test application startup
+        run: |
+          docker run -d \
+            --name nexedu-app-test \
+            --network nexedu-test-network \
+            -e DATABASE_URL="postgresql://nexedu_test:test123@postgres-test:5432/nexedu_test" \
+            -p 3000:3000 \
+            nexedu-test:latest
+
+          # Wait for app to start
+          sleep 10
+
+          # Test if app is responding
+          curl -f http://localhost:3000 || exit 1
+
+          # Cleanup
+          docker stop nexedu-app-test postgres-test
+          docker rm nexedu-app-test postgres-test
+          docker network rm nexedu-test-network
+
+  # Build e Push da imagem Docker
+  build-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test-docker
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Generate deployment artifact
+        run: |
+          mkdir -p deployment
+          cat > deployment/docker-compose.prod.yml << EOF
+          version: '3.8'
+          services:
+            nexedu-api:
+              image: ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+              ports:
+                - "3000:3000"
+              environment:
+                - NODE_ENV=production
+                - DATABASE_URL=\${DATABASE_URL}
+              depends_on:
+                - postgres
+              restart: unless-stopped
+
+            postgres:
+              image: postgres:15-alpine
+              environment:
+                - POSTGRES_USER=\${POSTGRES_USER:-nexedu}
+                - POSTGRES_PASSWORD=\${POSTGRES_PASSWORD}
+                - POSTGRES_DB=\${POSTGRES_DB:-nexedu_db}
+              volumes:
+                - postgres_data:/var/lib/postgresql/data
+              restart: unless-stopped
+
+          volumes:
+            postgres_data:
+          EOF
+
+          cat > deployment/deploy.sh << 'EOF'
+          #!/bin/bash
+          echo "🚀 Deploying NexEdu API..."
+
+          # Pull latest images
+          docker-compose -f docker-compose.prod.yml pull
+
+          # Stop current containers
+          docker-compose -f docker-compose.prod.yml down
+
+          # Start new containers
+          docker-compose -f docker-compose.prod.yml up -d
+
+          # Run migrations
+          docker-compose -f docker-compose.prod.yml exec -T nexedu-api npx prisma migrate deploy
+
+          echo "✅ Deployment completed!"
+          EOF
+
+          chmod +x deployment/deploy.sh
+
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-${{ github.sha }}
+          path: deployment/
+          retention-days: 30
+
+      - name: Comment on commit with image info
+        if: github.ref == 'refs/heads/main'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const message = `🐳 **Docker Image Built Successfully!**
+
+            **Image**: \`${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest\`
+            **Platforms**: linux/amd64, linux/arm64
+            **Commit**: ${context.sha.substring(0, 7)}
+            **Branch**: ${context.ref.replace('refs/heads/', '')}
+
+            **Quick Deploy:**
+            \`\`\`bash
+            # Download deployment files
+            curl -O deployment.tar.gz
+
+            # Or run directly
+            docker run -d \\
+              --name nexedu-api \\
+              -p 3000:3000 \\
+              -e DATABASE_URL="your_database_url" \\
+              ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+            \`\`\`
+
+            **Deployment artifacts available for 30 days** 📦`;
+
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: message
+            })
