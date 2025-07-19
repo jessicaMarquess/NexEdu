@@ -29,5 +29,5 @@ EXPOSE 3000
 # Define variáveis de ambiente
 ENV NODE_ENV=production
 
-# Comando para iniciar a aplicação
-CMD ["npx", "ts-node", "src/index.ts"]
+# Comando para iniciar a aplicação (usa o JavaScript compilado)
+CMD ["npm", "start"]

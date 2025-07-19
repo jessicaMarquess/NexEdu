@@ -150,7 +150,9 @@ app.delete('/posts/:id', async (req: Request, res: Response) => {
 });
 
 // Configuração e inicialização do servidor
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor NexEdu rodando na porta ${PORT}`);
+const PORT = Number(process.env.PORT) || 3000;
+const HOST = '0.0.0.0'; // Escuta em todas as interfaces para Docker
+
+app.listen(PORT, HOST, () => {
+  console.log(`Servidor NexEdu rodando em ${HOST}:${PORT}`);
 });

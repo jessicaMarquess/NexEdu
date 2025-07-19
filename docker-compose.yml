@@ -38,9 +38,6 @@ services:
         condition: service_healthy
     networks:
       - nexedu-network
-    volumes:
-      - .:/app
-      - /app/node_modules
     command: sh -c "npx prisma migrate deploy && npm start"
 
   # Dockerfile para desenvolvimento (opcional)
