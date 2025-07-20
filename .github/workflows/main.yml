@@ -361,7 +361,9 @@ jobs:
           echo "- \`feat:\` → Nova funcionalidade (minor)" >> CHANGELOG.md
           echo "- \`fix:\` → Correção de bug (patch)" >> CHANGELOG.md
           echo "- \`feat!:\` ou \`BREAKING CHANGE\` → Mudança breaking (major)" >> CHANGELOG.md
-          echo "- \`docs:\`, \`style:\`, \`refactor:\`, \`test:\` → Não geram release" >> CHANGELOG.md      - name: Create deployment artifacts
+          echo "- \`docs:\`, \`style:\`, \`refactor:\`, \`test:\` → Não geram release" >> CHANGELOG.md
+
+      - name: Create deployment artifacts
         if: steps.version.outputs.should_release == 'true'
         run: |
           NEW_VERSION=${{ steps.version.outputs.new_version }}
