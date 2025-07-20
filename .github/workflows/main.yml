@@ -226,7 +226,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-push
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -237,7 +237,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install semantic-release
         run: |
@@ -259,17 +259,17 @@ jobs:
           else
             COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s" --reverse)
           fi
-          
+
           VERSION=${LATEST_TAG#v}
           IFS='.' read -ra PARTS <<< "$VERSION"
           MAJOR=${PARTS[0]:-0}
           MINOR=${PARTS[1]:-0} 
           PATCH=${PARTS[2]:-0}
-          
+
           HAS_BREAKING=false
           HAS_FEAT=false
           HAS_FIX=false
-          
+
           echo "Analisando commits:"
           while IFS= read -r commit; do
             echo "  - $commit"
@@ -281,7 +281,7 @@ jobs:
               HAS_FIX=true
             fi
           done <<< "$COMMITS"
-          
+
           if [ "$HAS_BREAKING" = true ]; then
             MAJOR=$((MAJOR + 1))
             MINOR=0
@@ -302,7 +302,7 @@ jobs:
             echo "should_release=false" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
+
           NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
           echo "should_release=true" >> $GITHUB_OUTPUT
           echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
@@ -315,9 +315,9 @@ jobs:
         if: steps.version.outputs.should_release == 'true'
         id: changelog
         run: |
-          NEW_VERSION=${{ steps.version.outputs.new_version }}
-          LATEST_TAG=${{ steps.latest_tag.outputs.latest_tag }}
-          RELEASE_TYPE=${{ steps.version.outputs.release_type }}
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          LATEST_TAG="${{ steps.latest_tag.outputs.latest_tag }}"
+          RELEASE_TYPE="${{ steps.version.outputs.release_type }}"
           
           if [ "$LATEST_TAG" = "v0.0.0" ]; then
             COMMITS=$(git log --pretty=format:"- %s (%h)" --reverse)
@@ -325,53 +325,50 @@ jobs:
             COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"- %s (%h)" --reverse)
           fi
           
-          cat > CHANGELOG.md << EOF
-          ## ${RELEASE_TYPE} - ${NEW_VERSION}
-          
-          ### 📋 Mudanças
-          $COMMITS
-          
-          ### 🐳 Docker Image
-          \`\`\`bash
-          docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${NEW_VERSION#v}
-          docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-          \`\`\`
-          
-          ### 📦 Deploy Rápido
-          \`\`\`bash
-          # Com Docker Compose
-          curl -LO https://github.com/${{ github.repository }}/releases/download/${NEW_VERSION}/docker-compose.prod.yml
-          docker-compose -f docker-compose.prod.yml up -d
-          
-          # Ou executar diretamente
-          docker run -d \\
-            --name nexedu-api \\
-            -p 3000:3000 \\
-            -e DATABASE_URL="postgresql://user:pass@localhost:5432/db" \\
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${NEW_VERSION#v}
-          \`\`\`
-          
-          ### 📖 Documentação
-          - [README](https://github.com/${{ github.repository }}/blob/${NEW_VERSION}/README.md)
-          - [API Endpoints](https://github.com/${{ github.repository }}/blob/${NEW_VERSION}/test-requests.http)
-          
-          ---
-          
-          ### 🔄 Conventional Commits Utilizados:
-          - \`feat:\` → Nova funcionalidade (minor)
-          - \`fix:\` → Correção de bug (patch) 
-          - \`feat!:\` ou \`BREAKING CHANGE\` → Mudança breaking (major)
-          - \`docs:\`, \`style:\`, \`refactor:\`, \`test:\` → Não geram release
-          EOF
-
-      - name: Create deployment artifacts
+          # Create changelog content
+          echo "## ${RELEASE_TYPE} - ${NEW_VERSION}" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### 📋 Mudanças" >> CHANGELOG.md
+          echo "$COMMITS" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### 🐳 Docker Image" >> CHANGELOG.md
+          echo "\`\`\`bash" >> CHANGELOG.md
+          echo "docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${NEW_VERSION#v}" >> CHANGELOG.md
+          echo "docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest" >> CHANGELOG.md
+          echo "\`\`\`" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### 📦 Deploy Rápido" >> CHANGELOG.md
+          echo "\`\`\`bash" >> CHANGELOG.md
+          echo "# Com Docker Compose" >> CHANGELOG.md
+          echo "curl -LO https://github.com/${{ github.repository }}/releases/download/${NEW_VERSION}/docker-compose.prod.yml" >> CHANGELOG.md
+          echo "docker-compose -f docker-compose.prod.yml up -d" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "# Ou executar diretamente" >> CHANGELOG.md
+          echo "docker run -d \\" >> CHANGELOG.md
+          echo "  --name nexedu-api \\" >> CHANGELOG.md
+          echo "  -p 3000:3000 \\" >> CHANGELOG.md
+          echo "  -e DATABASE_URL=\"postgresql://user:pass@localhost:5432/db\" \\" >> CHANGELOG.md
+          echo "  ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${NEW_VERSION#v}" >> CHANGELOG.md
+          echo "\`\`\`" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### 📖 Documentação" >> CHANGELOG.md
+          echo "- [README](https://github.com/${{ github.repository }}/blob/${NEW_VERSION}/README.md)" >> CHANGELOG.md
+          echo "- [API Endpoints](https://github.com/${{ github.repository }}/blob/${NEW_VERSION}/test-requests.http)" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "---" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### 🔄 Conventional Commits Utilizados:" >> CHANGELOG.md
+          echo "- \`feat:\` → Nova funcionalidade (minor)" >> CHANGELOG.md
+          echo "- \`fix:\` → Correção de bug (patch)" >> CHANGELOG.md
+          echo "- \`feat!:\` ou \`BREAKING CHANGE\` → Mudança breaking (major)" >> CHANGELOG.md
+          echo "- \`docs:\`, \`style:\`, \`refactor:\`, \`test:\` → Não geram release" >> CHANGELOG.md      - name: Create deployment artifacts
         if: steps.version.outputs.should_release == 'true'
         run: |
           NEW_VERSION=${{ steps.version.outputs.new_version }}
           VERSION_NUMBER=${NEW_VERSION#v}
-          
+
           mkdir -p release-assets
-          
+
           # Docker Compose para produção
           cat > release-assets/docker-compose.prod.yml << EOF
           version: '3.8'
@@ -466,7 +463,7 @@ jobs:
 
           echo "✅ Deploy concluído com sucesso!"
           echo "🌐 API disponível em: http://localhost:3000"
-          
+
           # Testa se a API está respondendo
           if curl -f http://localhost:3000 >/dev/null 2>&1; then
               echo "🎉 API está respondendo corretamente!"
@@ -496,20 +493,20 @@ jobs:
         run: |
           NEW_VERSION=${{ steps.version.outputs.new_version }}
           RELEASE_TYPE=${{ steps.version.outputs.release_type }}
-          
+
           # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Create tag
           git tag -a ${NEW_VERSION} -m "${RELEASE_TYPE} - ${NEW_VERSION}
 
           Generated automatically by Semantic Release
           Commit: ${{ github.sha }}"
-          
+
           # Push tag
           git push origin ${NEW_VERSION}
-          
+
           echo "✅ Created and pushed tag: ${NEW_VERSION}"
 
       - name: Create GitHub Release
@@ -528,7 +525,7 @@ jobs:
 
   # Job de Release manual - só executa quando há tags criadas manualmente
   create-release:
-    name: Create GitHub Release  
+    name: Create GitHub Release
     runs-on: ubuntu-latest
     needs: build-push
     if: startsWith(github.ref, 'refs/tags/v')
@@ -559,26 +556,26 @@ jobs:
             PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || git rev-list --max-parents=0 HEAD)
             CHANGELOG=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --reverse)
           fi
-          
+
           # Salva o changelog em arquivo para usar no release
           cat > CHANGELOG.md << EOF
           ## 🚀 O que há de novo em ${{ steps.version.outputs.tag }}
-          
+
           ### 📋 Mudanças
           $CHANGELOG
-          
+
           ### 🐳 Docker Image
           \`\`\`bash
           docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
           docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
           \`\`\`
-          
+
           ### 📦 Deploy Rápido
           \`\`\`bash
           # Com Docker Compose
           curl -LO https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/docker-compose.prod.yml
           docker-compose -f docker-compose.prod.yml up -d
-          
+
           # Ou executar diretamente
           docker run -d \\
             --name nexedu-api \\
@@ -586,7 +583,7 @@ jobs:
             -e DATABASE_URL="postgresql://user:pass@localhost:5432/db" \\
             ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
           \`\`\`
-          
+
           ### 📖 Documentação
           - [README](https://github.com/${{ github.repository }}/blob/${{ steps.version.outputs.tag }}/README.md)
           - [API Endpoints](https://github.com/${{ github.repository }}/blob/${{ steps.version.outputs.tag }}/test-requests.http)
@@ -595,7 +592,7 @@ jobs:
       - name: Create deployment artifacts
         run: |
           mkdir -p release-assets
-          
+
           # Docker Compose para produção
           cat > release-assets/docker-compose.prod.yml << 'EOF'
           version: '3.8'
@@ -690,7 +687,7 @@ jobs:
 
           echo "✅ Deploy concluído com sucesso!"
           echo "🌐 API disponível em: http://localhost:3000"
-          
+
           # Testa se a API está respondendo
           if curl -f http://localhost:3000 >/dev/null 2>&1; then
               echo "🎉 API está respondendo corretamente!"

@@ -191,19 +191,21 @@ Este projeto utiliza **Semantic Release** com **Conventional Commits** para auto
 ### 🎯 Como funciona
 
 - **Push para `main`** → Analisa commits → **Gera release automaticamente** se houver mudanças significativas
-- **Sem commits convencionais** → Não gera release  
+- **Sem commits convencionais** → Não gera release
 - **Com commits convencionais** → Gera tag, changelog e release
 
 ### 📋 Tipos de commit
 
 #### 🐛 **Patch Version** (v1.0.0 → v1.0.1)
+
 ```bash
 fix: corrigir bug na validação de dados
 fix(api): resolver erro 500 no endpoint de posts
 fix(database): corrigir migração duplicada
 ```
 
-#### ✨ **Minor Version** (v1.0.0 → v1.1.0)  
+#### ✨ **Minor Version** (v1.0.0 → v1.1.0)
+
 ```bash
 feat: adicionar endpoint de busca de posts
 feat(auth): implementar login com Google
@@ -211,6 +213,7 @@ feat(api): adicionar filtros de data nos posts
 ```
 
 #### 💥 **Major Version** (v1.0.0 → v2.0.0)
+
 ```bash
 feat!: alterar estrutura da API de posts
 feat(api)!: remover endpoint deprecated /old-posts
@@ -223,9 +226,10 @@ BREAKING CHANGE: O endpoint /auth agora requer header Authorization
 ```
 
 #### 📚 **Não geram release**
+
 ```bash
 docs: atualizar README com novas instruções
-style: formatar código com prettier  
+style: formatar código com prettier
 refactor: reorganizar estrutura de pastas
 test: adicionar testes unitários
 chore: atualizar dependências
@@ -233,6 +237,7 @@ ci: melhorar workflow do GitHub Actions
 ```
 
 ### 🏗️ **Estrutura do commit**
+
 ```
 <tipo>(<escopo>)!: <descrição>
 
@@ -244,17 +249,19 @@ ci: melhorar workflow do GitHub Actions
 ### ✅ **Exemplos práticos**
 
 **Cenário: Corrigir bug + Adicionar feature**
+
 ```bash
 # Commit 1
 fix: corrigir validação de email no cadastro
 
-# Commit 2  
+# Commit 2
 feat: adicionar endpoint para upload de avatar
 
 # Push para main → Gera v1.1.0 (minor - por causa do feat)
 ```
 
 **Cenário: Breaking change**
+
 ```bash
 feat!: alterar formato de resposta da API
 
@@ -264,6 +271,7 @@ BREAKING CHANGE: Todos os endpoints agora retornam data no formato ISO
 ```
 
 **Cenário: Apenas docs**
+
 ```bash
 docs: melhorar documentação da API
 chore: atualizar dependências
