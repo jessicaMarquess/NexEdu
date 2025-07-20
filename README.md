@@ -33,7 +33,7 @@ git push origin main
 git push origin develop
 
 # Cria release automático com changelog e assets
-git tag v1.0.0 
+git tag v1.0.0
 git push origin v1.0.0
 ```
 
@@ -170,27 +170,121 @@ DELETE /posts/:id     # Deletar post
 
 ## 🔄 CI/CD com GitHub Actions
 
-Este projeto utiliza GitHub Actions para automação completa com Docker.
+Este projeto utiliza **Semantic Release** com **Conventional Commits** para automação completa com Docker.
 
 ### Workflows Configurados
 
 **🐳 Docker Build and Push** (`main.yml`):
+
 - **Triggers**: Push para `main`/`develop`, tags `v*`, pull requests
 - **Test Phase**: Testes automatizados com Docker + PostgreSQL
 - **Build Phase**: Build multi-arquitetura (linux/amd64, linux/arm64)
 - **Push Phase**: Upload automático para Docker Hub
-- **Artifacts**: Gera arquivos de deployment para produção
-
-**🚀 Create Release** (`release.yml`):
-- **Triggers**: Tags `v*` (ex: v1.0.0, v2.1.3)
-- **Auto Changelog**: Gera changelog baseado nos commits
-- **Release Assets**: Inclui docker-compose.prod.yml, deploy.sh, .env.example
-- **GitHub Release**: Cria release automático com documentação
+- **Semantic Release**: Gera releases automaticamente baseado em conventional commits
 
 ### Status dos Pipelines
 
 ![Docker Build and Push](https://github.com/jessicaMarquess/NexEdu/workflows/Docker%20Build%20and%20Push/badge.svg)
-![Create Release](https://github.com/jessicaMarquess/NexEdu/workflows/Create%20Release/badge.svg)
+
+## � Conventional Commits & Semantic Release
+
+### 🎯 Como funciona
+
+- **Push para `main`** → Analisa commits → **Gera release automaticamente** se houver mudanças significativas
+- **Sem commits convencionais** → Não gera release  
+- **Com commits convencionais** → Gera tag, changelog e release
+
+### 📋 Tipos de commit
+
+#### 🐛 **Patch Version** (v1.0.0 → v1.0.1)
+```bash
+fix: corrigir bug na validação de dados
+fix(api): resolver erro 500 no endpoint de posts
+fix(database): corrigir migração duplicada
+```
+
+#### ✨ **Minor Version** (v1.0.0 → v1.1.0)  
+```bash
+feat: adicionar endpoint de busca de posts
+feat(auth): implementar login com Google
+feat(api): adicionar filtros de data nos posts
+```
+
+#### 💥 **Major Version** (v1.0.0 → v2.0.0)
+```bash
+feat!: alterar estrutura da API de posts
+feat(api)!: remover endpoint deprecated /old-posts
+fix!: alterar formato de resposta da API
+
+# Ou usando BREAKING CHANGE no footer
+feat(api): adicionar novo sistema de autenticação
+
+BREAKING CHANGE: O endpoint /auth agora requer header Authorization
+```
+
+#### 📚 **Não geram release**
+```bash
+docs: atualizar README com novas instruções
+style: formatar código com prettier  
+refactor: reorganizar estrutura de pastas
+test: adicionar testes unitários
+chore: atualizar dependências
+ci: melhorar workflow do GitHub Actions
+```
+
+### 🏗️ **Estrutura do commit**
+```
+<tipo>(<escopo>)!: <descrição>
+
+<corpo do commit (opcional)>
+
+<footer (opcional)>
+```
+
+### ✅ **Exemplos práticos**
+
+**Cenário: Corrigir bug + Adicionar feature**
+```bash
+# Commit 1
+fix: corrigir validação de email no cadastro
+
+# Commit 2  
+feat: adicionar endpoint para upload de avatar
+
+# Push para main → Gera v1.1.0 (minor - por causa do feat)
+```
+
+**Cenário: Breaking change**
+```bash
+feat!: alterar formato de resposta da API
+
+BREAKING CHANGE: Todos os endpoints agora retornam data no formato ISO
+
+# Push para main → Gera v2.0.0 (major - por causa do !)
+```
+
+**Cenário: Apenas docs**
+```bash
+docs: melhorar documentação da API
+chore: atualizar dependências
+
+# Push para main → NÃO gera release (apenas docs/chore)
+```
+
+### 📦 **Fluxo completo**
+
+1. **Desenvolva** normalmente
+2. **Faça commits** seguindo conventional commits
+3. **Push para main** → Workflow analisa commits automaticamente
+4. **Se houver mudanças significativas** → Cria tag + release automaticamente
+5. **Release inclui** changelog, Docker images, arquivos de deploy
+
+### 🎯 **Dicas para bons commits**
+
+- **Use o presente**: "adicionar" não "adicionado"
+- **Seja específico**: "corrigir validação de email" não "corrigir bug"
+- **Use escopos**: `feat(auth):`, `fix(api):`, `docs(readme):`
+- **Breaking changes** sempre usar `!` ou `BREAKING CHANGE`
 
 ## Testes
 
