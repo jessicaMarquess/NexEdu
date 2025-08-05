@@ -318,13 +318,13 @@ jobs:
           NEW_VERSION="${{ steps.version.outputs.new_version }}"
           LATEST_TAG="${{ steps.latest_tag.outputs.latest_tag }}"
           RELEASE_TYPE="${{ steps.version.outputs.release_type }}"
-          
+
           if [ "$LATEST_TAG" = "v0.0.0" ]; then
             COMMITS=$(git log --pretty=format:"- %s (%h)" --reverse)
           else
             COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"- %s (%h)" --reverse)
           fi
-          
+
           # Create changelog content
           echo "## ${RELEASE_TYPE} - ${NEW_VERSION}" > CHANGELOG.md
           echo "" >> CHANGELOG.md
