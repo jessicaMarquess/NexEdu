@@ -366,8 +366,8 @@ jobs:
       - name: Create deployment artifacts
         if: steps.version.outputs.should_release == 'true'
         run: |
-          NEW_VERSION=${{ steps.version.outputs.new_version }}
-          VERSION_NUMBER=${NEW_VERSION#v}
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          VERSION_NUMBER="${NEW_VERSION#v}"
 
           mkdir -p release-assets
 
@@ -493,18 +493,18 @@ jobs:
       - name: Create tag and release
         if: steps.version.outputs.should_release == 'true'
         run: |
-          NEW_VERSION=${{ steps.version.outputs.new_version }}
-          RELEASE_TYPE=${{ steps.version.outputs.release_type }}
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          RELEASE_TYPE="${{ steps.version.outputs.release_type }}"
 
           # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Create tag
-          git tag -a ${NEW_VERSION} -m "${RELEASE_TYPE} - ${NEW_VERSION} - Generated automatically by Semantic Release - Commit: ${{ github.sha }}"
+          git tag -a "${NEW_VERSION}" -m "${RELEASE_TYPE} - ${NEW_VERSION} - Generated automatically by Semantic Release - Commit: ${{ github.sha }}"
 
           # Push tag
-          git push origin ${NEW_VERSION}
+          git push origin "${NEW_VERSION}"
 
           echo "✅ Created and pushed tag: ${NEW_VERSION}"
 
