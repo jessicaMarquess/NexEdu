@@ -501,10 +501,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Create tag
-          git tag -a ${NEW_VERSION} -m "${RELEASE_TYPE} - ${NEW_VERSION}
-
-          Generated automatically by Semantic Release
-          Commit: ${{ github.sha }}"
+          git tag -a ${NEW_VERSION} -m "${RELEASE_TYPE} - ${NEW_VERSION} - Generated automatically by Semantic Release - Commit: ${{ github.sha }}"
 
           # Push tag
           git push origin ${NEW_VERSION}
